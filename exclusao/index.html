@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Excluir minha conta — aKd Treinos</title>
+<style>
+  /* Sem fonte externa, sem analytics, sem cookie de terceiro: só a página e o Supabase. */
+  :root {
+    --bg: #0F1115;
+    --surface: #171A21;
+    --borda: #262B35;
+    --texto: #E7E9EE;
+    --texto-sec: #C7CBD6;
+    --texto-fraco: #9BA1B2;
+    --acento: #A4FF2E;
+    --acento-texto: #0F1115;
+    --perigo: #FF6B6B;
+    --perigo-bg: #3A1B1E;
+    --aviso: #FFB020;
+    --aviso-bg: #33260D;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px 16px calc(32px + env(safe-area-inset-bottom, 0px));
+    background: var(--bg);
+    color: var(--texto);
+    font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 34rem; margin: 0 auto; }
+  h1 { font-size: 1.6rem; line-height: 1.2; margin: 0 0 0.4rem; }
+  .marca { color: var(--texto-fraco); font-size: 0.85rem; margin: 0 0 1.6rem; }
+  h2 { font-size: 1.15rem; margin: 2rem 0 0.7rem; }
+  p { margin: 0 0 1rem; color: var(--texto-sec); }
+  ul { margin: 0 0 1rem; padding-left: 1.2rem; color: var(--texto-sec); }
+  li { margin-bottom: 0.5rem; }
+  .cartao {
+    background: var(--surface); border: 1px solid var(--borda);
+    border-radius: 14px; padding: 16px; margin-bottom: 16px;
+  }
+  .cartao p:last-child, .cartao ul:last-child { margin-bottom: 0; }
+  label { display: block; font-size: 0.9rem; color: var(--texto-sec); margin-bottom: 0.3rem; }
+  input {
+    width: 100%; padding: 12px; margin-bottom: 14px; font-size: 16px;
+    background: var(--bg); color: var(--texto);
+    border: 1px solid var(--borda); border-radius: 10px;
+  }
+  input:focus-visible { outline: 2px solid var(--acento); outline-offset: 1px; }
+  button {
+    width: 100%; min-height: 48px; padding: 12px 16px; font-size: 16px; font-weight: 600;
+    border: 0; border-radius: 10px; cursor: pointer;
+    background: var(--acento); color: var(--acento-texto);
+  }
+  button.perigo { background: var(--perigo); color: #2A0E10; }
+  button.secundario { background: transparent; color: var(--texto-sec); border: 1px solid var(--borda); }
+  button[disabled] { opacity: 0.6; cursor: progress; }
+  button + button { margin-top: 10px; }
+  .erro {
+    background: var(--perigo-bg); border: 1px solid var(--perigo);
+    border-radius: 10px; padding: 12px; margin-bottom: 14px; color: var(--texto);
+  }
+  .destaque {
+    background: var(--aviso-bg); border: 1px solid var(--aviso);
+    border-radius: 14px; padding: 16px; margin-bottom: 16px;
+  }
+  .destaque strong { color: var(--aviso); }
+  .data { font-size: 1.5rem; font-weight: 700; color: var(--aviso); display: block; margin: 0.2rem 0 0.4rem; }
+  .rodape { color: var(--texto-fraco); font-size: 0.85rem; margin-top: 2.5rem; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Excluir minha conta</h1>
+  <p class="marca">aKd Treinos</p>
+
+  <div class="cartao">
+    <h2 style="margin-top:0">Você tem 7 dias para mudar de ideia</h2>
+    <ul>
+      <li>Sua conta fica desativada por 7 dias. Se você entrar de novo nesse prazo, ela volta ao normal.</li>
+      <li>Depois dos 7 dias apagamos seu nome, e-mail, telefone, data de nascimento, foto e observações de saúde. Isso não dá para desfazer.</li>
+      <li>Seus treinos registrados continuam nas estatísticas da academia, sem o seu nome.</li>
+      <li>Se você é professor ou administrador: as fichas e os modelos que você montou continuam com os alunos, sem o seu nome.</li>
+    </ul>
+  </div>
+
+  <!-- Entrar -->
+  <section id="passo-login">
+    <h2>Entre com a sua conta</h2>
+    <p>Precisamos confirmar que a conta é sua antes de registrar o pedido.</p>
+    <div class="cartao">
+      <div id="erro-login" class="erro" hidden></div>
+      <form id="form-login" novalidate>
+        <label for="email">E-mail</label>
+        <input id="email" name="email" type="email" autocomplete="email" inputmode="email" required>
+        <label for="senha">Senha</label>
+        <input id="senha" name="senha" type="password" autocomplete="current-password" required>
+        <button type="submit" id="btn-entrar">Entrar</button>
+      </form>
+    </div>
+    <p style="font-size:0.9rem">
+      Esqueceu a senha, ou entrou no app com o Google? Peça a exclusão pelo próprio aplicativo, em
+      <strong>Perfil → Excluir minha conta</strong>. O caminho é o mesmo e tem o mesmo efeito.
+    </p>
+  </section>
+
+  <!-- Pedir -->
+  <section id="passo-pedido" hidden>
+    <h2>Confirmar a exclusão</h2>
+    <p>Você entrou como <strong id="conta-email"></strong>.</p>
+    <div class="cartao">
+      <div id="erro-pedido" class="erro" hidden></div>
+      <button type="button" class="perigo" id="btn-excluir">Solicitar exclusão</button>
+      <button type="button" class="secundario" id="btn-sair">Sair</button>
+    </div>
+  </section>
+
+  <!-- Confirmar (dois toques, como no app) -->
+  <section id="passo-confirmar" hidden>
+    <h2>Tem certeza?</h2>
+    <div class="destaque">
+      <p>Sua conta será desativada agora e apagada em 7 dias. Até lá, basta entrar no aplicativo para voltar atrás.</p>
+    </div>
+    <button type="button" class="perigo" id="btn-confirmar">Sim, excluir minha conta</button>
+    <button type="button" class="secundario" id="btn-cancelar">Agora não</button>
+  </section>
+
+  <!-- Pronto -->
+  <section id="passo-pronto" hidden>
+    <h2>Pedido registrado</h2>
+    <div class="destaque">
+      <p style="margin-bottom:0">
+        Sua conta está desativada e será apagada em
+        <strong class="data" id="data-efetivacao"></strong>
+      </p>
+    </div>
+    <p><strong>Mudou de ideia?</strong> Entre no aplicativo aKd Treinos com esta mesma conta antes dessa
+      data e toque em <strong>Cancelar exclusão e voltar</strong>. A conta volta ao normal, com os seus treinos.</p>
+    <p>Depois dessa data não é possível desfazer, e para usar o app de novo será preciso um novo convite da academia.</p>
+  </section>
+
+  <p class="rodape">
+    Esta página serve só para pedir a exclusão da sua conta. Não usamos cookies de terceiros nem
+    nenhuma ferramenta de medição aqui.
+  </p>
+</main>
+
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+  // ============================================================================================
+  // ÚNICA configuração da página. É a chave PUBLISHABLE, a mesma que vai dentro do aplicativo:
+  // pública por natureza e limitada pela RLS. NUNCA colocar aqui a service_role.
+  // ============================================================================================
+  const SUPABASE_URL = 'https://txhwadrowktywbzzhsyl.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_hcneQlGmtSxcP9E2n4386w_PR9yNJKe';
+
+  // persistSession desligado: é uma página de uso único, e sessão guardada no navegador seria um
+  // token de acesso esquecido ali depois de a pessoa fechar a aba.
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
+  const $ = (id) => document.getElementById(id);
+  const mostrar = (...ids) => {
+    for (const secao of ['passo-login', 'passo-pedido', 'passo-confirmar', 'passo-pronto']) {
+      $(secao).hidden = !ids.includes(secao);
+    }
+  };
+  function erro(onde, texto) {
+    const caixa = $(onde);
+    caixa.textContent = texto;
+    caixa.hidden = !texto;
+  }
+
+  /** Mesmas mensagens do aplicativo, para a web não contar outra história. */
+  function mensagem(e) {
+    const m = (e && (e.message || e.error_description)) || '';
+    if (m === 'ULTIMO_ADMINISTRADOR') {
+      return 'Você é a única administradora da academia. Promova outra pessoa a administradora antes de excluir sua conta.';
+    }
+    if (m === 'NAO_AUTENTICADO') return 'Sua sessão expirou. Entre de novo para continuar.';
+    if (/Invalid login credentials/i.test(m)) return 'E-mail ou senha incorretos. Confira e tente de novo.';
+    if (/Email not confirmed/i.test(m)) return 'Esta conta ainda não teve o e-mail confirmado. Confirme pelo link que enviamos e tente de novo.';
+    if (/rate limit|too many/i.test(m)) return 'Muitas tentativas seguidas. Espere um minuto e tente de novo.';
+    if (/fetch|network/i.test(m)) return 'Falha de conexão. Verifique sua internet e tente de novo.';
+    return m ? `Não foi possível concluir: ${m}` : 'Não foi possível concluir. Tente de novo em alguns instantes.';
+  }
+
+  const dataBR = (iso) =>
+    new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+  /** Pedido já em andamento: a tela de confirmação não faz sentido, mostra o estado. */
+  async function pedidoPendente() {
+    const { data, error } = await supabase.rpc('minha_exclusao_pendente');
+    if (error) throw error;
+    return (data ?? [])[0] ?? null;
+  }
+
+  function concluir(efetivarEm) {
+    $('data-efetivacao').textContent = dataBR(efetivarEm);
+    mostrar('passo-pronto');
+  }
+
+  $('form-login').addEventListener('submit', async (evento) => {
+    evento.preventDefault();
+    erro('erro-login', '');
+    const botao = $('btn-entrar');
+    botao.disabled = true;
+    botao.textContent = 'Entrando...';
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: $('email').value.trim(),
+        password: $('senha').value,
+      });
+      if (error) throw error;
+      $('conta-email').textContent = data.user?.email ?? '';
+      $('senha').value = '';
+
+      const emAndamento = await pedidoPendente();
+      if (emAndamento) {
+        concluir(emAndamento.efetivar_em);
+        return;
+      }
+      mostrar('passo-pedido');
+    } catch (e) {
+      erro('erro-login', mensagem(e));
+    } finally {
+      botao.disabled = false;
+      botao.textContent = 'Entrar';
+    }
+  });
+
+  $('btn-excluir').addEventListener('click', () => {
+    erro('erro-pedido', '');
+    mostrar('passo-confirmar');
+  });
+  $('btn-cancelar').addEventListener('click', () => mostrar('passo-pedido'));
+
+  $('btn-confirmar').addEventListener('click', async () => {
+    const botao = $('btn-confirmar');
+    botao.disabled = true;
+    botao.textContent = 'Registrando...';
+    try {
+      const { data, error } = await supabase.rpc('solicitar_exclusao_conta');
+      if (error) throw error;
+      // A RPC é idempotente: com pedido já aberto, devolve o mesmo em vez de criar outro.
+      concluir(data.efetivar_em);
+    } catch (e) {
+      mostrar('passo-pedido');
+      erro('erro-pedido', mensagem(e));
+    } finally {
+      botao.disabled = false;
+      botao.textContent = 'Sim, excluir minha conta';
+    }
+  });
+
+  $('btn-sair').addEventListener('click', async () => {
+    await supabase.auth.signOut();
+    $('email').value = '';
+    $('senha').value = '';
+    erro('erro-login', '');
+    mostrar('passo-login');
+  });
+</script>
+</body>
+</html>
