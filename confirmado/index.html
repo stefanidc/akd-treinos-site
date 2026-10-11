@@ -63,27 +63,37 @@
   </p>
 </main>
 <script>
-  // O Supabase chega aqui com a sessão no fragmento (#access_token=...&refresh_token=...) ou, no
-  // fluxo PKCE, com ?code=... Repassar o mesmo conteúdo para akd://confirmado é o que deixa o app
-  // abrir a sessão e a pessoa entrar logada direto. Link vencido chega como #error=...: também é
-  // repassado, para o app explicar no Login em vez de a pessoa ficar sem saber o que houve.
-  // Nada disso vai para log, e o fragmento sai da barra de endereço logo depois de lido.
+  // Fluxo PKCE (11/10/2026): o Supabase chega aqui com ?code=..., e só o app que pediu o cadastro
+  // tem o verificador para trocá-lo por sessão. A página repassa SÓ o código (e o erro, quando o
+  // link venceu) para akd://confirmado. Tokens no fragmento (#access_token=..., links do fluxo
+  // antigo) NÃO são repassados: qualquer app do celular pode abrir akd://... com tokens, e o app
+  // passou a recusá-los — a pessoa entra com e-mail e senha, o e-mail já está confirmado.
+  // Nada disso vai para log, e a URL é limpa logo depois de lida.
   (function () {
-    var busca = window.location.search || '';
-    var fragmento = window.location.hash || '';
-    var temDados = /[?&]code=/.test(busca) || /(access_token|error)=/.test(fragmento);
-    var destino = 'akd://confirmado' + (temDados ? busca + fragmento : '');
-    document.getElementById('abrir').setAttribute('href', destino);
+    var busca = new URLSearchParams(window.location.search || '');
+    var fragmento = new URLSearchParams((window.location.hash || '').replace(/^#/, ''));
+    var codigo = busca.get('code');
+    var erro = busca.get('error') || fragmento.get('error');
+    var codigoErro = busca.get('error_code') || fragmento.get('error_code');
+    var tokensAntigos = fragmento.has('access_token');
 
-    if (/error=/.test(fragmento)) {
+    var destino = 'akd://confirmado';
+    if (erro) {
+      destino += '?error=' + encodeURIComponent(erro) + (codigoErro ? '&error_code=' + encodeURIComponent(codigoErro) : '');
       document.getElementById('mensagem').textContent =
         'Este link de confirmação expirou ou já foi usado. Abra o aplicativo e entre com seu e-mail e senha; se não conseguir, crie a conta de novo para receber outro link.';
+    } else if (codigo) {
+      destino += '?code=' + encodeURIComponent(codigo);
+    } else if (tokensAntigos) {
+      document.getElementById('mensagem').textContent =
+        'E-mail confirmado. Abra o aplicativo aKd Treinos e entre com seu e-mail e senha.';
     }
+    document.getElementById('abrir').setAttribute('href', destino);
 
-    if (temDados) {
+    if (codigo || erro || tokensAntigos) {
       try {
-        // Tira os tokens da URL (histórico, compartilhar link, print da tela). O botão guarda o
-        // destino só em memória, enquanto a página estiver aberta.
+        // Tira código e tokens da URL (histórico, compartilhar link, print da tela). O botão guarda
+        // o destino só em memória, enquanto a página estiver aberta.
         history.replaceState(null, '', window.location.pathname);
       } catch (e) {}
     }
