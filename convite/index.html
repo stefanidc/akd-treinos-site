@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="referrer" content="no-referrer">
+<title>Convite — aKd Treinos</title>
+<style>
+  /* Mesmo visual das outras páginas: sem fonte externa, sem analytics, sem cookie de terceiro. */
+  :root {
+    --bg: #0F1115;
+    --surface: #171A21;
+    --borda: #262B35;
+    --texto: #E7E9EE;
+    --texto-sec: #C7CBD6;
+    --texto-fraco: #9BA1B2;
+    --acento: #A4FF2E;
+    --acento-texto: #0F1115;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px 16px calc(32px + env(safe-area-inset-bottom, 0px));
+    background: var(--bg);
+    color: var(--texto);
+    font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 34rem; margin: 0 auto; }
+  h1 { font-size: 1.6rem; line-height: 1.2; margin: 0 0 0.4rem; }
+  .marca { color: var(--texto-fraco); font-size: 0.85rem; margin: 0 0 1.6rem; }
+  p { margin: 0 0 1rem; color: var(--texto-sec); }
+  .cartao {
+    background: var(--surface); border: 1px solid var(--borda);
+    border-radius: 14px; padding: 16px; margin-bottom: 16px;
+  }
+  .cartao p:last-child { margin-bottom: 0; }
+  .botao {
+    display: inline-block; width: 100%; text-align: center;
+    min-height: 48px; padding: 12px 16px; line-height: 24px;
+    font-size: 16px; font-weight: 600; border-radius: 10px;
+    background: var(--acento); color: var(--acento-texto); text-decoration: none;
+  }
+  .rodape { color: var(--texto-fraco); font-size: 0.85rem; margin-top: 2.5rem; }
+  .rodape a { color: var(--acento); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Você recebeu um convite</h1>
+  <p class="marca">aKd Treinos</p>
+
+  <div class="cartao">
+    <p id="mensagem">Abrindo o convite no aplicativo aKd Treinos. Se ele não abrir sozinho, toque no botão abaixo.</p>
+  </div>
+
+  <!-- O botão existe desde o HTML: sem script, ou sem o app, a pessoa ainda tem o que tocar. -->
+  <a class="botao" id="abrir" href="akd://convite">Abrir o aplicativo</a>
+
+  <div class="cartao" style="margin-top:16px">
+    <p>Não tem o app instalado? Instale o aKd Treinos e volte a este link. Se preferir, no app use
+      <strong>Abrir convite recebido</strong> com o código que veio na mensagem.</p>
+  </div>
+
+  <p class="rodape">
+    <a href="../">Início</a> · <a href="../privacidade/">Política de Privacidade</a>
+  </p>
+</main>
+<script>
+  // Repassa o token para akd://convite?token=..., que o app já trata (useConviteLink). O token não
+  // vai para log nem para lugar nenhum além do link do app; noindex e no-referrer evitam que a URL
+  // com o token seja indexada ou enviada a outro site.
+  (function () {
+    var token = new URLSearchParams(window.location.search).get('token') || '';
+    var valido = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(token.trim());
+    if (!valido) {
+      document.getElementById('mensagem').textContent =
+        'Este link de convite está incompleto. Abra de novo o link da mensagem ou, no app, use "Abrir convite recebido" com o código.';
+      return;
+    }
+    var destino = 'akd://convite?token=' + encodeURIComponent(token.trim());
+    document.getElementById('abrir').setAttribute('href', destino);
+
+    // Uma tentativa por visita: ao voltar do app, insistir reabriria sozinho.
+    try {
+      var chave = 'tentou-abrir-convite-' + token.trim();
+      if (!sessionStorage.getItem(chave)) {
+        sessionStorage.setItem(chave, '1');
+        window.location.href = destino;
+      }
+    } catch (e) {
+      // Armazenamento bloqueado: fica só o botão.
+    }
+  })();
+</script>
+</body>
+</html>

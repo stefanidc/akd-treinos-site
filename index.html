@@ -26,12 +26,20 @@
     color: #A4FF2E; text-decoration: none; font-weight: 600;
   }
   a:hover, a:focus-visible { border-color: #A4FF2E; }
+  /* Rodapé com links simples (não botões): é onde a loja e as pessoas procuram exclusão e política. */
+  .rodape { font-size: 0.85rem; color: #9BA1B2; }
+  .rodape a { display: inline; padding: 0; min-height: 0; border: 0; font-weight: 400; }
 </style>
 </head>
 <body>
   <h1>aKd Treinos</h1>
   <p>Aplicativo de academia: o aluno consulta a ficha e registra o treino, a equipe monta as fichas e acompanha.</p>
-  <a href="./exclusao/">Excluir minha conta</a>
+  <a href="./excluir-conta/">Excluir conta e dados</a>
   <a href="./privacidade/">Política de Privacidade</a>
+  <footer class="rodape">
+    <a href="./excluir-conta/">Excluir conta e dados</a> ·
+    <a href="./privacidade/">Política de Privacidade</a> ·
+    <a href="mailto:contato.akdtreinos@gmail.com">contato.akdtreinos@gmail.com</a>
+  </footer>
 </body>
 </html>

@@ -51,29 +51,54 @@
   <p class="marca">aKd Treinos</p>
 
   <div class="cartao">
-    <p>Volte ao aplicativo aKd Treinos e entre com seu e-mail e senha.</p>
+    <p id="mensagem">E-mail confirmado. Volte ao aplicativo aKd Treinos: se ele não abrir sozinho, toque no botão abaixo ou entre com seu e-mail e senha.</p>
   </div>
 
   <!-- O botão existe desde o começo, no HTML: se o script não rodar, ou o app não estiver
        instalado, a pessoa ainda lê o texto e tem o que tocar. A página nunca fica em branco. -->
-  <a class="botao" href="akd://">Abrir o aplicativo</a>
+  <a class="botao" id="abrir" href="akd://confirmado">Abrir o aplicativo</a>
 
   <p class="rodape">
     <a href="../">Início</a>
   </p>
 </main>
 <script>
-  // Tentativa única de abrir o app, logo ao chegar. Sem app instalado nada acontece e a página
-  // continua à vista — por isso a tentativa não some com o conteúdo nem redireciona para lugar
-  // nenhum. Só no primeiro carregamento: ao voltar do app, insistir reabriria sozinho.
-  try {
-    if (!sessionStorage.getItem('tentou-abrir')) {
-      sessionStorage.setItem('tentou-abrir', '1');
-      window.location.href = 'akd://';
+  // O Supabase chega aqui com a sessão no fragmento (#access_token=...&refresh_token=...) ou, no
+  // fluxo PKCE, com ?code=... Repassar o mesmo conteúdo para akd://confirmado é o que deixa o app
+  // abrir a sessão e a pessoa entrar logada direto. Link vencido chega como #error=...: também é
+  // repassado, para o app explicar no Login em vez de a pessoa ficar sem saber o que houve.
+  // Nada disso vai para log, e o fragmento sai da barra de endereço logo depois de lido.
+  (function () {
+    var busca = window.location.search || '';
+    var fragmento = window.location.hash || '';
+    var temDados = /[?&]code=/.test(busca) || /(access_token|error)=/.test(fragmento);
+    var destino = 'akd://confirmado' + (temDados ? busca + fragmento : '');
+    document.getElementById('abrir').setAttribute('href', destino);
+
+    if (/error=/.test(fragmento)) {
+      document.getElementById('mensagem').textContent =
+        'Este link de confirmação expirou ou já foi usado. Abra o aplicativo e entre com seu e-mail e senha; se não conseguir, crie a conta de novo para receber outro link.';
     }
-  } catch (e) {
-    // Navegador com armazenamento bloqueado: fica só o botão, que é o caminho manual.
-  }
+
+    if (temDados) {
+      try {
+        // Tira os tokens da URL (histórico, compartilhar link, print da tela). O botão guarda o
+        // destino só em memória, enquanto a página estiver aberta.
+        history.replaceState(null, '', window.location.pathname);
+      } catch (e) {}
+    }
+
+    // Tentativa única de abrir o app, logo ao chegar. Sem app instalado nada acontece e a página
+    // continua à vista. Só no primeiro carregamento: ao voltar do app, insistir reabriria sozinho.
+    try {
+      if (!sessionStorage.getItem('tentou-abrir')) {
+        sessionStorage.setItem('tentou-abrir', '1');
+        window.location.href = destino;
+      }
+    } catch (e) {
+      // Navegador com armazenamento bloqueado: fica só o botão, que é o caminho manual.
+    }
+  })();
 </script>
 </body>
 </html>
