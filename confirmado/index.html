@@ -63,46 +63,57 @@
   </p>
 </main>
 <script>
-  // Fluxo PKCE (11/10/2026): o Supabase chega aqui com ?code=..., e só o app que pediu o cadastro
-  // tem o verificador para trocá-lo por sessão. A página repassa SÓ o código (e o erro, quando o
-  // link venceu) para akd://confirmado. Tokens no fragmento (#access_token=..., links do fluxo
-  // antigo) NÃO são repassados: qualquer app do celular pode abrir akd://... com tokens, e o app
-  // passou a recusá-los — a pessoa entra com e-mail e senha, o e-mail já está confirmado.
+  // Fluxo PKCE: o Supabase chega aqui com ?code=..., e só o celular que pediu o cadastro tem o
+  // verificador para trocá-lo por sessão. A página repassa SÓ o código (e o erro, quando o link
+  // venceu) para akd://confirmado. Tokens no fragmento (#access_token=..., fluxo antigo) NÃO são
+  // repassados: qualquer app do celular pode abrir akd://... com tokens, e o app os recusa.
   // Nada disso vai para log, e a URL é limpa logo depois de lida.
+  //
+  // O código fica guardado na sessionStorage DESTA aba enquanto ela estiver aberta (some ao
+  // fechar): a página recarregada ou reaberta perdia o código, o botão abria o app sem ele e o app
+  // caía no Login sem explicação — o que aconteceu no teste de 11/10/2026.
   (function () {
+    var DESTINO_BASE = 'akd://confirmado';
+    var CHAVE = 'destino-app:' + DESTINO_BASE;
     var busca = new URLSearchParams(window.location.search || '');
     var fragmento = new URLSearchParams((window.location.hash || '').replace(/^#/, ''));
     var codigo = busca.get('code');
     var erro = busca.get('error') || fragmento.get('error');
     var codigoErro = busca.get('error_code') || fragmento.get('error_code');
     var tokensAntigos = fragmento.has('access_token');
+    var mensagem = document.getElementById('mensagem');
 
-    var destino = 'akd://confirmado';
+    var destino = DESTINO_BASE;
     if (erro) {
       destino += '?error=' + encodeURIComponent(erro) + (codigoErro ? '&error_code=' + encodeURIComponent(codigoErro) : '');
-      document.getElementById('mensagem').textContent =
-        'Este link de confirmação expirou ou já foi usado. Abra o aplicativo e entre com seu e-mail e senha; se não conseguir, crie a conta de novo para receber outro link.';
+      mensagem.textContent = 'Este link de confirmação expirou ou já foi usado. Abra o aplicativo e entre com seu e-mail e senha; se não conseguir, crie a conta de novo para receber outro link.';
     } else if (codigo) {
       destino += '?code=' + encodeURIComponent(codigo);
+      try { sessionStorage.setItem(CHAVE, destino); } catch (e) {}
     } else if (tokensAntigos) {
-      document.getElementById('mensagem').textContent =
-        'E-mail confirmado. Abra o aplicativo aKd Treinos e entre com seu e-mail e senha.';
+      mensagem.textContent = 'E-mail confirmado. Abra o aplicativo aKd Treinos e entre com seu e-mail e senha.';
+    } else {
+      try {
+        var guardado = sessionStorage.getItem(CHAVE);
+        if (guardado && guardado.indexOf(DESTINO_BASE + '?code=') === 0) destino = guardado;
+      } catch (e) {}
     }
     document.getElementById('abrir').setAttribute('href', destino);
 
     if (codigo || erro || tokensAntigos) {
       try {
-        // Tira código e tokens da URL (histórico, compartilhar link, print da tela). O botão guarda
-        // o destino só em memória, enquanto a página estiver aberta.
+        // Tira código e tokens da URL (histórico, compartilhar link, print da tela).
         history.replaceState(null, '', window.location.pathname);
       } catch (e) {}
     }
 
     // Tentativa única de abrir o app, logo ao chegar. Sem app instalado nada acontece e a página
     // continua à vista. Só no primeiro carregamento: ao voltar do app, insistir reabriria sozinho.
+    // O navegador pode barrar esta abertura automática; o botão é o caminho garantido.
     try {
-      if (!sessionStorage.getItem('tentou-abrir')) {
-        sessionStorage.setItem('tentou-abrir', '1');
+      var CHAVE_TENTOU = 'tentou-abrir:' + DESTINO_BASE;
+      if (!sessionStorage.getItem(CHAVE_TENTOU)) {
+        sessionStorage.setItem(CHAVE_TENTOU, '1');
         window.location.href = destino;
       }
     } catch (e) {

@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Nova senha — aKd Treinos</title>
+<style>
+  /* Mesmo visual das outras páginas: sem fonte externa, sem analytics, sem cookie de terceiro. */
+  :root {
+    --bg: #0F1115;
+    --surface: #171A21;
+    --borda: #262B35;
+    --texto: #E7E9EE;
+    --texto-sec: #C7CBD6;
+    --texto-fraco: #9BA1B2;
+    --acento: #A4FF2E;
+    --acento-texto: #0F1115;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px 16px calc(32px + env(safe-area-inset-bottom, 0px));
+    background: var(--bg);
+    color: var(--texto);
+    font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 34rem; margin: 0 auto; }
+  h1 { font-size: 1.6rem; line-height: 1.2; margin: 0 0 0.4rem; }
+  .marca { color: var(--texto-fraco); font-size: 0.85rem; margin: 0 0 1.6rem; }
+  p { margin: 0 0 1rem; color: var(--texto-sec); }
+  .cartao {
+    background: var(--surface); border: 1px solid var(--borda);
+    border-radius: 14px; padding: 16px; margin-bottom: 16px;
+  }
+  .cartao p:last-child { margin-bottom: 0; }
+  .botao {
+    display: inline-block; width: 100%; text-align: center;
+    min-height: 48px; padding: 12px 16px; line-height: 24px;
+    font-size: 16px; font-weight: 600; border-radius: 10px;
+    background: var(--acento); color: var(--acento-texto); text-decoration: none;
+  }
+  .rodape { color: var(--texto-fraco); font-size: 0.85rem; margin-top: 2.5rem; }
+  .rodape a { color: var(--acento); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Definir nova senha</h1>
+  <p class="marca">aKd Treinos</p>
+
+  <div class="cartao">
+    <p id="mensagem">Toque no botão abaixo para abrir o aplicativo aKd Treinos e escolher a nova senha. Abra no mesmo celular em que você pediu a recuperação.</p>
+  </div>
+
+  <!-- O botão existe desde o começo, no HTML: se o script não rodar, ou o app não estiver
+       instalado, a pessoa ainda lê o texto e tem o que tocar. A página nunca fica em branco. -->
+  <a class="botao" id="abrir" href="akd://redefinir-senha">Abrir o aplicativo</a>
+
+  <p class="rodape">
+    <a href="../">Início</a> · <a href="../privacidade/">Política de Privacidade</a> · <a href="../termos/">Termos de Uso</a>
+  </p>
+</main>
+<script>
+  // Fluxo PKCE: o Supabase chega aqui com ?code=..., e só o celular que pediu a recuperação de senha tem o
+  // verificador para trocá-lo por sessão. A página repassa SÓ o código (e o erro, quando o link
+  // venceu) para akd://redefinir-senha. Tokens no fragmento (#access_token=..., fluxo antigo) NÃO são
+  // repassados: qualquer app do celular pode abrir akd://... com tokens, e o app os recusa.
+  // Nada disso vai para log, e a URL é limpa logo depois de lida.
+  //
+  // O código fica guardado na sessionStorage DESTA aba enquanto ela estiver aberta (some ao
+  // fechar): a página recarregada ou reaberta perdia o código, o botão abria o app sem ele e o app
+  // caía no Login sem explicação — o que aconteceu no teste de 11/10/2026.
+  (function () {
+    var DESTINO_BASE = 'akd://redefinir-senha';
+    var CHAVE = 'destino-app:' + DESTINO_BASE;
+    var busca = new URLSearchParams(window.location.search || '');
+    var fragmento = new URLSearchParams((window.location.hash || '').replace(/^#/, ''));
+    var codigo = busca.get('code');
+    var erro = busca.get('error') || fragmento.get('error');
+    var codigoErro = busca.get('error_code') || fragmento.get('error_code');
+    var tokensAntigos = fragmento.has('access_token');
+    var mensagem = document.getElementById('mensagem');
+
+    var destino = DESTINO_BASE;
+    if (erro) {
+      destino += '?error=' + encodeURIComponent(erro) + (codigoErro ? '&error_code=' + encodeURIComponent(codigoErro) : '');
+      mensagem.textContent = 'Este link de recuperação não vale mais (cada link funciona uma vez). Abra o aplicativo e peça um novo em “Esqueci minha senha”.';
+    } else if (codigo) {
+      destino += '?code=' + encodeURIComponent(codigo);
+      try { sessionStorage.setItem(CHAVE, destino); } catch (e) {}
+    } else if (tokensAntigos) {
+      mensagem.textContent = 'Este link é de uma versão anterior do aplicativo. Abra o aplicativo e peça um novo em “Esqueci minha senha”.';
+    } else {
+      try {
+        var guardado = sessionStorage.getItem(CHAVE);
+        if (guardado && guardado.indexOf(DESTINO_BASE + '?code=') === 0) destino = guardado;
+      } catch (e) {}
+    }
+    document.getElementById('abrir').setAttribute('href', destino);
+
+    if (codigo || erro || tokensAntigos) {
+      try {
+        // Tira código e tokens da URL (histórico, compartilhar link, print da tela).
+        history.replaceState(null, '', window.location.pathname);
+      } catch (e) {}
+    }
+
+    // Tentativa única de abrir o app, logo ao chegar. Sem app instalado nada acontece e a página
+    // continua à vista. Só no primeiro carregamento: ao voltar do app, insistir reabriria sozinho.
+    // O navegador pode barrar esta abertura automática; o botão é o caminho garantido.
+    try {
+      var CHAVE_TENTOU = 'tentou-abrir:' + DESTINO_BASE;
+      if (!sessionStorage.getItem(CHAVE_TENTOU)) {
+        sessionStorage.setItem(CHAVE_TENTOU, '1');
+        window.location.href = destino;
+      }
+    } catch (e) {
+      // Navegador com armazenamento bloqueado: fica só o botão, que é o caminho manual.
+    }
+  })();
+</script>
+</body>
+</html>
