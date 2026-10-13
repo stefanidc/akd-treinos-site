@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Baixar o app — aKd Treinos</title>
+<style>
+  /* Mesmo visual de web/exclusao/: sem fonte externa, sem analytics, sem cookie de terceiro. */
+  :root {
+    --bg: #0F1115;
+    --surface: #171A21;
+    --borda: #262B35;
+    --texto: #E7E9EE;
+    --texto-sec: #C7CBD6;
+    --texto-fraco: #9BA1B2;
+    --acento: #A4FF2E;
+    --aviso: #FFB020;
+    --aviso-bg: #33260D;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px 16px calc(32px + env(safe-area-inset-bottom, 0px));
+    background: var(--bg);
+    color: var(--texto);
+    font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 34rem; margin: 0 auto; }
+  h1 { font-size: 1.6rem; line-height: 1.2; margin: 0 0 0.4rem; }
+  .marca { color: var(--texto-fraco); font-size: 0.85rem; margin: 0 0 1.6rem; }
+  h2 { font-size: 1.15rem; margin: 2rem 0 0.7rem; }
+  p { margin: 0 0 1rem; color: var(--texto-sec); }
+  ol, ul { margin: 0 0 1rem; padding-left: 1.3rem; color: var(--texto-sec); }
+  li { margin-bottom: 0.6rem; }
+  strong { color: var(--texto); }
+  a { color: var(--acento); }
+  .destaque {
+    background: var(--aviso-bg); border: 1px solid var(--aviso);
+    border-radius: 14px; padding: 16px; margin-bottom: 16px;
+  }
+  .destaque strong { color: var(--aviso); }
+  .cartao {
+    background: var(--surface); border: 1px solid var(--borda);
+    border-radius: 14px; padding: 16px; margin-bottom: 16px;
+  }
+  .cartao p:last-child, .cartao ol:last-child { margin-bottom: 0; }
+  .rodape { color: var(--texto-fraco); font-size: 0.85rem; margin-top: 2.5rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Baixar o aKd Treinos</h1>
+  <p class="marca">aKd Treinos</p>
+
+  <div class="destaque">
+    <p><strong>Fase piloto.</strong> O aKd Treinos ainda não está nas lojas. Por enquanto, só funciona
+    para as academias que participam do piloto, e a instalação é feita pelo convite da sua academia.</p>
+  </div>
+
+  <h2>Como instalar</h2>
+  <div class="cartao">
+    <ol>
+      <li>Peça à recepção ou ao seu professor o <strong>convite de instalação</strong> do aKd Treinos
+        para Android.</li>
+      <li>Abra o convite no celular e siga os passos até o app aparecer na tela inicial.</li>
+      <li>Se o Android perguntar, permita a instalação.</li>
+    </ol>
+  </div>
+
+  <h2>Como entrar na sua academia</h2>
+  <div class="cartao">
+    <ol>
+      <li>Abra o app e toque em <strong>Criar conta</strong> → <strong>“Entrar na minha academia”</strong>.</li>
+      <li>Use o <strong>mesmo e-mail</strong> que a academia cadastrou. Se a academia ainda não cadastrou
+        você, peça o código na recepção ou leia o QR Code.</li>
+      <li>Confirme o e-mail pelo link que chega na sua caixa de entrada (olhe também o Lixo eletrônico/Spam)
+        e volte ao app.</li>
+    </ol>
+  </div>
+
+  <h2>Dúvidas</h2>
+  <p>Fale com a sua academia ou escreva para
+    <a href="mailto:contato.akdtreinos@gmail.com">contato.akdtreinos@gmail.com</a>.</p>
+
+  <p class="rodape">
+    <a href="../privacidade/">Política de Privacidade</a> · <a href="../termos/">Termos de Uso</a> · <a href="../excluir-conta/">Excluir conta e dados</a>
+  </p>
+</main>
+</body>
+</html>
