@@ -175,8 +175,11 @@
       nome</strong>;</li>
     <li>se você é professor ou administrador, as fichas, os modelos e as publicações que você criou
       continuam com a academia, também sem o seu nome;</li>
+    <li>se você é professor ou administrador e foi adicionado pelo administrador da academia, o nome,
+      o e-mail e o telefone desse cadastro ficam com a academia; se você é o titular, os dados
+      cadastrais da academia (como CNPJ ou CPF) também ficam com ela;</li>
     <li>por segurança e para cumprir a lei, guardamos o registro de que o pedido de exclusão foi feito e
-      de quais versões dos documentos legais foram aceitas, sem dado que identifique você.</li>
+      de quais versões dos documentos legais foram aceitas, sem o seu nome e sem o seu e-mail.</li>
   </ul>
   <p>Mais detalhes na <a href="../privacidade/">Política de Privacidade</a>.</p>
 
@@ -189,7 +192,7 @@
 </main>
 
 <script type="module">
-  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.109.0/+esm';
 
   // ============================================================================================
   // ÚNICA configuração da página. É a chave PUBLISHABLE, a mesma que vai dentro do aplicativo:
@@ -220,7 +223,7 @@
   function mensagem(e) {
     const m = (e && (e.message || e.error_description)) || '';
     if (m === 'ULTIMO_ADMINISTRADOR') {
-      return 'Você é a única administradora da academia. Promova outra pessoa a administradora antes de excluir sua conta.';
+      return 'Você é a única pessoa com perfil de administrador nesta academia. Promova outra pessoa a administrador antes de excluir sua conta.';
     }
     if (m === 'NAO_AUTENTICADO') return 'Sua sessão expirou. Entre de novo para continuar.';
     if (/Invalid login credentials/i.test(m)) return 'E-mail ou senha incorretos. Confira e tente de novo.';
